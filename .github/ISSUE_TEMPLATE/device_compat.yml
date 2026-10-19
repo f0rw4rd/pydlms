@@ -1,0 +1,110 @@
+name: Meter Compatibility Report
+description: Report a meter that doesn't work or needs special handling
+labels: ["device-compat", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Help improve meter compatibility by reporting meters that don't work as expected.
+
+  - type: input
+    id: manufacturer
+    attributes:
+      label: Meter manufacturer
+      placeholder: "e.g. Landis+Gyr, Iskraemeco, Kaifa, Sagemcom, Siemens, Honeywell/Elster"
+    validations:
+      required: true
+
+  - type: input
+    id: model
+    attributes:
+      label: Meter model
+      placeholder: "e.g. E450, AM550, MA309M, T210-D, IM350"
+    validations:
+      required: true
+
+  - type: input
+    id: operator
+    attributes:
+      label: Grid operator / country
+      placeholder: "e.g. Wiener Netze (AT), Netz NÖ (AT), Netbeheer NL"
+    validations:
+      required: false
+
+  - type: dropdown
+    id: transport
+    attributes:
+      label: Transport
+      options:
+        - TCP/UDP wrapper (IEC 62056-8-3, port 4059)
+        - HDLC (serial / optical)
+        - M-Bus customer port (RJ12)
+        - Optical IEC 62056-21 (mode C/E)
+        - Other / unknown
+    validations:
+      required: true
+
+  - type: dropdown
+    id: what_fails
+    attributes:
+      label: What fails?
+      options:
+        - Association (AARQ/AARE)
+        - Authentication (LLS / HLS)
+        - Ciphering / decryption (AES-GCM, general-glo-ciphering)
+        - GET / read attribute
+        - SET / write attribute
+        - ACTION / method call
+        - Object list (association view)
+        - Push / DataNotification decode
+        - OBIS or data-type decode
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: security
+    attributes:
+      label: Security / auth level
+      options:
+        - None (no security)
+        - LLS (low-level, password)
+        - HLS (high-level, challenge-response)
+        - Ciphered (security suite 0 AES-128-GCM)
+        - Ciphered suite 1/2 (ECDSA)
+        - Unknown
+    validations:
+      required: false
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: What happens vs what you expected (include the full traceback if any)
+    validations:
+      required: true
+
+  - type: textarea
+    id: ic_report
+    attributes:
+      label: IC report
+      description: >-
+        Output of `pydlms discover-ic <endpoint> --report` (public client 16,
+        reads only). It names where the meter keeps its invocation counters
+        and never contains counter values, serial numbers or system titles;
+        check it before posting anyway.
+      render: json
+    validations:
+      required: false
+
+  - type: textarea
+    id: frame
+    attributes:
+      label: Frame / capture
+      description: >-
+        Paste the hex of the APDU or frame that fails, or attach a pcap. If the
+        frame is ciphered and you can share a test key, include it (never share a
+        production key). This is the single most useful thing for diagnosis.
+        Run a `--record` file through `pydlms redact` before attaching it.
+    validations:
+      required: false

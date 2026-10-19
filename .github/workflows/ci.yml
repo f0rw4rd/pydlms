@@ -1,0 +1,215 @@
+# ============================================================================
+# CI Pipeline — pydlms
+# ============================================================================
+#
+# Security hardening applied:
+#   - Top-level permissions: {} (deny all by default)
+#   - All actions pinned to full SHA (prevents tag-force-push attacks)
+#   - No pull_request_target (prevents PWN request attacks)
+#   - PR jobs have read-only permissions (no write access on untrusted code)
+#   - Concurrency groups cancel redundant runs
+#   - PYTHONUTF8 and PYTHONDONTWRITEBYTECODE set globally
+#
+# Recommended branch protection rules for 'main':
+#   1. Require pull request reviews before merging (1+ approvals)
+#   2. Require status checks to pass: lint, format, test, collect, security
+#   3. Require branches to be up to date before merging
+#   4. Require signed commits
+#   5. Do not allow bypassing the above settings
+#   6. Restrict force pushes and deletions
+#
+# ============================================================================
+
+name: CI
+
+on:
+  push:
+    branches: [main]  # Only main branch — feature branches tested via PR
+  pull_request:
+    branches: [main]
+  workflow_call:         # Reusable by release.yml
+
+# Deny all permissions by default — each job grants only what it needs
+permissions: {}
+
+# Cancel redundant runs: same branch/PR only keeps the latest
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONUTF8: "1"              # Consistent encoding across platforms
+  PYTHONDONTWRITEBYTECODE: "1"  # No .pyc files in CI (cleaner, faster)
+
+jobs:
+  # ── Lint ─────────────────────────────────────────────────────────
+  lint:
+    name: Lint (ruff check)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read  # Checkout only
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false  # Don't leak GITHUB_TOKEN to later steps
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: |
+          pip install --only-binary :all: "ruff>=0.15.0"
+
+      - name: Run ruff check
+        run: ruff check pydlms/
+
+  # ── Format ───────────────────────────────────────────────────────
+  format:
+    name: Format (ruff format)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install ruff
+        run: |
+          pip install --only-binary :all: "ruff>=0.15.0"
+
+      - name: Run ruff format --check
+        run: ruff format --check pydlms/
+
+  # ── Test ─────────────────────────────────────────────────────────
+  test:
+    name: Test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false  # Run all matrix entries even if one fails
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13", "3.14", "3.15"]
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          allow-prereleases: true  # 3.15 until its final release
+
+      # The "test" extra omits lint tooling (pre-commit -> pyyaml has no
+      # wheels for brand-new interpreters yet).
+      - name: Install package with test dependencies
+        run: pip install -e ".[test]"
+
+      - name: Run pytest
+        run: pytest -v
+
+  # ── Integration (serial PTY) ─────────────────────────────────────
+  integration-serial:
+    name: Integration (socat PTY serial + optical)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install socat
+        run: sudo apt-get update && sudo apt-get install -y socat
+
+      - name: Install package with test dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Run serial integration tests
+        run: pytest -v -m integration tests/integration/test_serial_pty.py
+
+  # ── Interop (Gurux simulator, Wireshark dissector) ───────────────
+  integration-interop:
+    name: Interop (Gurux simulator + tshark 4.6 dissector)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Build interop images
+        run: |
+          docker build -t pydlms-gurux-sim tests/integration/gurux
+          docker build -t pydlms-tshark tests/integration/tshark
+          docker build -t pydlms-gurux-client tests/integration/gurux_client
+
+      - name: Install package with test dependencies
+        run: pip install -e ".[test]"
+
+      - name: Run interop tests
+        run: pytest -v -m integration tests/integration/test_gurux.py tests/integration/test_gurux_suite1.py tests/integration/test_gurux_client.py tests/integration/test_tshark.py
+
+  # ── Test Collection Sanity ───────────────────────────────────────
+  collect:
+    name: Test collection sanity
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install package with test dependencies
+        run: pip install -e ".[dev]"
+
+      - name: Verify test collection
+        run: pytest --collect-only -q
+
+  # ── Security & Quality ──────────────────────────────────────────
+  security:
+    name: Security & dead code
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install security tools
+        run: |
+          pip install --only-binary :all: "vulture>=2.14" "bandit>=1.9.3"
+
+      - name: Install package (needed for import resolution)
+        run: pip install -e .
+
+      - name: Vulture (dead code detection)
+        run: vulture pydlms/ vulture_whitelist.py
+
+      - name: Bandit (security linter)
+        run: bandit -c pyproject.toml -r pydlms/

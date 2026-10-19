@@ -1,0 +1,25 @@
+[package]
+name = "pydlms-interop-rust-dlms"
+version = "0.0.0"
+edition = "2024"
+publish = false
+description = "Oracle adapters (tests/interop/PROTOCOL.md) for the Rust DLMS crates"
+license = "GPL-3.0-only"
+
+[[bin]]
+name = "rust-dlms-oracle"
+path = "src/main.rs"
+
+[dependencies]
+# hupe1980/dlms-cosem-rs, crates.io 0.1.0 = git cf414f570cfc74f3acbda83e960e287cc3cb316f
+dlms-cosem-rs = { version = "=0.1.0", features = ["sn"] }
+# reitermarkus/dlms-cosem-rs, crates.io 0.2.0 = git 5a431d59287ae726e464e57405952c811942dadd
+dlms_cosem = { version = "=0.2.0" }
+serde_json = "1"
+# The key type dlms_cosem 0.2.0 takes (`cipher::Key<aes::Aes128>`), same versions it uses.
+aes = "0.8"
+cipher = "0.4"
+
+[profile.release]
+# Keep unwinding: a panic inside a library under test is a finding, not an abort.
+panic = "unwind"

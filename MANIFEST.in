@@ -1,0 +1,7 @@
+# The sdist carries the full test suite and the examples it runs, so `pytest`
+# works from it, plus the attribution for the vendored test vectors
+# (THIRD_PARTY.md, Apache-2.0).
+include THIRD_PARTY.md SECURITY.md CONTRIBUTING.md
+graft tests
+graft examples
+global-exclude __pycache__ *.py[cod]

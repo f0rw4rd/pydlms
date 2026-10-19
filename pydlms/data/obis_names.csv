@@ -1,0 +1,45 @@
+obis,name
+0.0.1.0.0.255,Clock
+0.0.42.0.0.255,COSEM logical device name
+0.0.40.0.0.255,Current association
+0.0.96.1.0.255,Meter serial number
+0.0.96.1.1.255,Meter identifier 1
+0.0.96.1.7.255,Meter type
+0.0.96.3.10.255,Disconnect control
+0.0.96.14.0.255,Current tariff
+0.0.96.13.0.255,Consumer message text
+0.0.17.0.0.255,Limiter
+0.0.25.9.0.255,Push setup
+0.0.43.1.0.255,Security setup invocation counter
+0.0.43.0.0.255,Security setup
+1.1.0.2.129.255,OBIS list version identifier
+1.0.0.2.0.255,Active firmware identifier
+1.0.1.7.0.255,Active power import (+P)
+1.0.2.7.0.255,Active power export (-P)
+1.0.3.7.0.255,Reactive power import (+Q)
+1.0.4.7.0.255,Reactive power export (-Q)
+1.0.1.8.0.255,Active energy import (+A) total
+1.0.1.8.1.255,Active energy import (+A) tariff 1
+1.0.1.8.2.255,Active energy import (+A) tariff 2
+1.0.2.8.0.255,Active energy export (-A) total
+1.0.2.8.1.255,Active energy export (-A) tariff 1
+1.0.2.8.2.255,Active energy export (-A) tariff 2
+1.0.3.8.0.255,Reactive energy import (+R) total
+1.0.4.8.0.255,Reactive energy export (-R) total
+1.0.13.7.0.255,Power factor
+1.0.14.7.0.255,Supply frequency
+1.0.21.7.0.255,Active power import L1
+1.0.41.7.0.255,Active power import L2
+1.0.61.7.0.255,Active power import L3
+1.0.22.7.0.255,Active power export L1
+1.0.42.7.0.255,Active power export L2
+1.0.62.7.0.255,Active power export L3
+1.0.31.7.0.255,Current L1
+1.0.51.7.0.255,Current L2
+1.0.71.7.0.255,Current L3
+1.0.32.7.0.255,Voltage L1
+1.0.52.7.0.255,Voltage L2
+1.0.72.7.0.255,Voltage L3
+1.0.99.1.0.255,Load profile 1
+1.0.99.2.0.255,Load profile 2
+0.0.99.98.0.255,Standard event log

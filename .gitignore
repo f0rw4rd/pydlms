@@ -1,0 +1,30 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+.coverage
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+reference/
+
+# AI agents
+.claude/
+.cursorrules
+.cursorignore
+.cursor/
+.aider*
+.github/copilot-*
+.copilot/
+.codeium/
+.continue/
+.windsurf/
+.env/
+.serena/
+.venv/
+venv/
+
+# Design notes, research and backlog: local only
+docs/

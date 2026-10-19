@@ -1,0 +1,130 @@
+[build-system]
+requires = ["setuptools>=77.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pydlms-client"
+dynamic = ["version"]
+description = "DLMS/COSEM client library for Python (IEC 62056), with construct-based packet definitions"
+readme = "README.md"
+license = "GPL-3.0-only"
+license-files = ["LICENSE", "LICENSE-COMMERCIAL.md"]
+requires-python = ">=3.10"
+authors = [
+    {name = "f0rw4rd"},
+]
+maintainers = [
+    {name = "f0rw4rd"},
+]
+keywords = [
+    "dlms",
+    "cosem",
+    "iec62056",
+    "smart-meter",
+    "metering",
+    "ami",
+    "obis",
+    "hdlc",
+    "energy",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "Intended Audience :: Science/Research",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Programming Language :: Python :: 3.15",
+    "Topic :: System :: Networking",
+    "Topic :: Scientific/Engineering",
+    "Typing :: Typed",
+]
+dependencies = [
+    "construct>=2.10,<3",
+]
+
+[project.optional-dependencies]
+# AES-GCM ciphering (security suite 0/1/2) and HLS mechanisms
+crypto = [
+    "cryptography>=41.0",
+]
+# Serial / optical (HDLC, IEC 62056-21 mode E, M-Bus) transports
+serial = [
+    "pyserial>=3.5",
+]
+# Everything a full client needs at runtime
+all = [
+    "cryptography>=41.0",
+    "pyserial>=3.5",
+]
+# What the test suite needs (no lint tooling; installable on new interpreters)
+test = [
+    "cryptography>=41.0",
+    "pyserial>=3.5",
+    "pytest>=8.0",
+    "pytest-cov>=4.0",
+    "hypothesis>=6.100",
+]
+dev = [
+    "cryptography>=41.0",
+    "pyserial>=3.5",
+    "pytest>=8.0",
+    "pytest-cov>=4.0",
+    "hypothesis>=6.100",
+    "ruff>=0.15.0",
+    "vulture>=2.14",
+    "bandit>=1.9.3",
+    "pre-commit>=4.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/f0rw4rd/pydlms"
+Repository = "https://github.com/f0rw4rd/pydlms"
+Issues = "https://github.com/f0rw4rd/pydlms/issues"
+
+[project.scripts]
+pydlms = "pydlms.cli:main"
+
+[tool.setuptools.dynamic]
+version = {attr = "pydlms.__version__"}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pydlms*"]
+
+[tool.setuptools.package-data]
+pydlms = ["py.typed", "data/*.csv", "data/*.yaml"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "C4", "UP"]
+ignore = ["E501", "E402", "UP006", "UP007", "UP035", "UP045"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+
+[tool.vulture]
+paths = ["pydlms"]
+min_confidence = 80
+exclude = []
+
+[tool.bandit]
+targets = ["pydlms"]
+skips = ["B101"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+markers = [
+    "integration: Integration tests requiring Docker or a serial PTY (deselected by default)",
+]
+addopts = "-m 'not integration'"
