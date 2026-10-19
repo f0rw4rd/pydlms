@@ -179,8 +179,9 @@ Interop / sim targets (separate processes, no code entanglement):
 - No OBIS/unit tables copied from GPL-2.0 Gurux or BSL dlms-cosem.
   Hand-author the factual table; cite sources in `THIRD_PARTY.md`.
 - One coherent purpose per commit and per pull request.
-- Update `README.md` (including its verification status), `__all__`, tests and
-  `examples/` when a public API or supported-feature claim changes.
+- Update `README.md` (including its verification status), `GUIDE.md`,
+  `__all__`, tests and `examples/` when a public API or supported-feature
+  claim changes.
 
 ## Releases
 
